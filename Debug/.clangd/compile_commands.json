@@ -1,0 +1,22 @@
+[
+   {
+      "directory" : "D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c/Debug",
+      "command"   : "clang++ -I\"D:/ti/ccstheia140/ccs/ccs_base/msp430/include\" -I\"D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c\" -I\"D:/ti/ccstheia140/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include\" -D__MSP430FR5994__ -D_MPU_ENABLE",
+      "file"      : "D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c/msp430fr599x_1.c"
+   },
+   {
+      "directory" : "D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c/Debug",
+      "command"   : "clang++ -I\"D:/ti/ccstheia140/ccs/ccs_base/msp430/include\" -I\"D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c\" -I\"D:/ti/ccstheia140/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include\" -D__MSP430FR5994__ -D_MPU_ENABLE",
+      "file"      : "D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c/hibernation.c"
+   },
+   {
+      "directory" : "D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c/Debug",
+      "command"   : "clang++ -I\"D:/ti/ccstheia140/ccs/ccs_base/msp430/include\" -I\"D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c\" -I\"D:/ti/ccstheia140/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include\" -D__MSP430FR5994__ -D_MPU_ENABLE",
+      "file"      : "D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c/SerialPrint.c"
+   },
+   {
+      "directory" : "D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c/Debug",
+      "command"   : "clang++ -I\"D:/ti/ccstheia140/ccs/ccs_base/msp430/include\" -I\"D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c\" -I\"D:/ti/ccstheia140/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include\" -D__MSP430FR5994__ -D_MPU_ENABLE",
+      "file"      : "D:/MSc Embedded Systems/MSc Project/hibernusmspexp430fr5994/msp430fr599x_1.c/VCCmonitor.c"
+   }
+]

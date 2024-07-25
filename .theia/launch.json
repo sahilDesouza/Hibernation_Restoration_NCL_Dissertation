@@ -1,0 +1,11 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "msp430fr599x_1.c",
+            "type": "ccs-debug",
+            "request": "launch",
+            "project": "msp430fr599x_1.c"
+        }
+    ]
+}
