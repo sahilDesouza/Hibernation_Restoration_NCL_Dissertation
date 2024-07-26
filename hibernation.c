@@ -1,7 +1,7 @@
 /*
-* Hibernus for MSP430FR5994:
+*  for MSP430FR5994:
 * 
-* Hibernus: Software-based approach to intelligently hibernate and restore the system's state
+* This Firmware approach is to intelligently save and restore the system's state
 * in response to a power failure. This software exploits an ADC VCC Monitor.
 *
 */
@@ -16,27 +16,24 @@
 
 #pragma SET_DATA_SECTION(".fram_vars")
 
-unsigned long int *FRAM_write_ptr = (unsigned long int *) FRAM_START_EXPLICIT; //pointer that points the FRAM
-unsigned long int *RAM_copy_ptr = (unsigned long int *) RAM_START; //pointer that points the RAM
-unsigned long int *FLAG_interrupt = (unsigned long int *) INT; //Flag for Interrupt
-unsigned long int *CC_Check = (unsigned long int *) CHECK; //Flag for Restoring
+//contains FRAM and RAM addresses
+unsigned long int *FRAM_write_ptr = (unsigned long int *) FRAM_START_EXPLICIT; 
+unsigned long int *RAM_copy_ptr = (unsigned long int *) RAM_START; 
 
-//These pointers and variable are used to set the PC
-unsigned long int *FRAM_pc = (unsigned long int *) PC; //pointer for PC
-unsigned long int* current_SP;
+//pointers for FRAM and currentStackPointer
+unsigned long int *FRAM_pc = (unsigned long int *) PC; 
+unsigned long int *current_SP;
 
-//This array is used to restore the register state
+//This array is used to restore the register data
 unsigned int Registers[532];
-
 unsigned int *Reg_copy_ptr;
-int restoreDoneSetFlag = 0;
 
+//flags to maintain down and up wakeup of system during power outage and restoration
+int restoreDoneSetFlag = 0;
 int hibernateDoneFlagSet = 0xA0;
 int additionalFlag = 0;
-
 int hibernateRecalled = 0;
 int hibernusInitial = 0;
-
 
 #pragma SET_DATA_SECTION()
 
@@ -92,15 +89,20 @@ const unsigned int gen[532] = {
 unsigned int i;
 
 
-void Hibernus(void)
+void systemInitialisation(void)
 {
 
     //System_Init
-    GPIO_configuration();
-    Clock_configuration();
+    initGPIO();
+    initMSPClock();
+
+    //create initial snapshot in fram when system just boots up
+    if(hibernateDoneFlagSet == 0xA0)
+        updateBlockSelectRetention();
 
     initVCCADC();
     initADCTimer();
+  
 
     //serialPrintInit();
 
@@ -120,7 +122,7 @@ void Hibernus(void)
     // }
 }
 
-void GPIO_configuration (void)
+void initGPIO(void)
 {
 
     //GPIO configuration
@@ -140,7 +142,7 @@ void GPIO_configuration (void)
 }
 
 
-void Clock_configuration (void)
+void initMSPClock(void)
 {
 
     //setting core frequency
@@ -153,16 +155,13 @@ void Clock_configuration (void)
     CSCTL0_H = 0x01;                            // Lock Register
 }
 
-void Hibernate (void)
+void Hibernate(void)
 {
-    //P3OUT ^= LED1;  // Set P3.7 high
+    //Added for Debugging
+    P3OUT &= ~LED1;  // Set P3.7 low
+    P3OUT ^= LED1;  // Set P3.7 high
 
     
-    //For Debugging: Hibernate
-    // P1DIR |= BIT7;
-    // P1OUT |= BIT7;
-    // P2OUT &= ~BIT6;
-
     //copy Core registers to FRAM
     asm(" MOVA R1,&0xEDF4");
     asm(" MOVA R2,&0xEDF8");
@@ -185,30 +184,27 @@ void Hibernate (void)
     *FRAM_pc = *current_SP;
 
     // copy all the RAM onto the FRAM
-    Save_RAM();
+    SaveRAMSnapshot();
 
     // copy all the general registers onto the FRAM
     restoreDoneSetFlag = 0;
     additionalFlag = 0;
 
     hibernateRecalled = 1;
-    //hibernusIntial == 1;
 
-    Save_Register();
+    SaveGPRegister();
 
     hibernateDoneFlagSet = 1;
 
-    //For Debugging: Hibernate finished
-    //P1OUT &= ~BIT7;
-
+    // Added For Debugging
     //P3OUT ^= LED1;  // Set P3.7 low
 }
 
-void Restore (void)
+void Restore(void)
 {
     
-    // Restore all Register and RAM Memory
-    Restore_Register();
+    // Restore all general purpose Register contents
+    RestoreGPRegisters();
     
     // Restore RAM
     FRAM_write_ptr = (unsigned long int *) FRAM_START_EXPLICIT;
@@ -223,12 +219,10 @@ void Restore (void)
 
     while(RAM_copy_ptr < (unsigned long int *) (RAM_END)) 
     {
-
         *RAM_copy_ptr++ = *FRAM_write_ptr++;
-
     }
 
-    //copy Core registers from FRAM
+    //copy Core registers contents from FRAM back to CPU
     asm(" MOVA &0xEDF4,R1");
     asm(" MOVA &0xEDF8,R2");
     asm(" MOVA &0xEDFC,R3");
@@ -248,8 +242,8 @@ void Restore (void)
   
     *current_SP = *FRAM_pc; 
 
-    //Debugging: Restore finished
-    P1OUT &= ~BIT3;
+    // //Debugging: Restore finished
+    // P1OUT &= ~BIT3;
     
     restoreDoneSetFlag = 1;  
     additionalFlag = 1;
@@ -271,53 +265,52 @@ void Restore (void)
     ADC12IER2 |= ADC12LOIE;     // Enable low interrupt
     ADC12IER2 |= ADC12INIE;     // Enable in window interrupt
 
-    //allow reference to settle
-    //__delay_cycles(1000);
-    
+
+    //added for debugging
+    P3OUT ^= LED1;  // Set P3.7 low
+
+
     __bis_SR_register(GIE);        //interrupts enabled
     __no_operation();             // For debug
-
-
-    
+   
 }
 
 
-void Save_RAM (void)
+void SaveRAMSnapshot(void)
 {
 
     FRAM_write_ptr = (unsigned long int *) FRAM_START_EXPLICIT;
-
+        
     for ( i = 0; i < 16; i++)
     {
         *FRAM_write_ptr++;
     }
 
-    RAM_copy_ptr = (unsigned long int *) RAM_START;
-    while(RAM_copy_ptr <= (unsigned long int *) (RAM_END)) 
-    {
-        *FRAM_write_ptr++ = *RAM_copy_ptr++;
-    }
-    
-    // // copy all RAM onto the FRAM
     // RAM_copy_ptr = (unsigned long int *) RAM_START;
-
     // while(RAM_copy_ptr <= (unsigned long int *) (RAM_END)) 
     // {
-    //     if(*FRAM_write_ptr == *RAM_copy_ptr)
-    //     {
-    //         FRAM_write_ptr++;
-    //         RAM_copy_ptr++;
-    //     }
-    //     else
-    //     {
-    //         *FRAM_write_ptr++ = *RAM_copy_ptr++;
-    //     }
+    //     *FRAM_write_ptr++ = *RAM_copy_ptr++;
     // }
+    
+    // copy all RAM onto the FRAM
+    RAM_copy_ptr = (unsigned long int *) RAM_START;
+
+    while(RAM_copy_ptr <= (unsigned long int *) (RAM_END)) 
+    {
+        if(*FRAM_write_ptr == *RAM_copy_ptr)
+        {
+            FRAM_write_ptr++;
+            RAM_copy_ptr++;
+        }
+        else
+        {
+            *FRAM_write_ptr++ = *RAM_copy_ptr++;
+        }
+    }
 
 }
 
-
-void Save_Register (void)
+void SaveGPRegister(void)
 {
     
     for(i = 0; i < 532; i++)
@@ -327,7 +320,7 @@ void Save_Register (void)
     }
 }
 
-void Restore_Register (void)
+void RestoreGPRegisters(void)
 {
 
     //unlock registers

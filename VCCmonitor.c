@@ -136,7 +136,6 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
             if(hibernateDoneFlagSet == 1)
             {
                 Restore();
-                //P1OUT ^= BIT1;  // Toggle P1.0
             }   
         // Handle high threshold cross
         break;
@@ -171,7 +170,6 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
             {
                 __bis_SR_register(GIE);         // Enter LPM4 with interrupts enabled
                 __no_operation();               // For debug 
-                //__delay_cycles(10000);
             }
           
 

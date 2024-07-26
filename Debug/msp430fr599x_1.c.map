@@ -1,7 +1,7 @@
 ******************************************************************************
                   MSP430 Linker PC v21.6.1                     
 ******************************************************************************
->> Linked Thu Jul 25 16:09:59 2024
+>> Linked Fri Jul 26 23:46:24 2024
 
 OUTPUT FILE NAME:   <msp430fr599x_1.c.out>
 ENTRY POINT SYMBOL: "_c_int00_noargs"  address: 0000470c
@@ -20,7 +20,7 @@ MEMORY CONFIGURATION
   RAM                   00001c00   00001000  000000a2  00000f5e  RWIX
   LEARAM                00002c00   00000ec8  00000000  00000ec8  RWIX
   LEASTACK              00003ac8   00000138  00000000  00000138  RWIX
-  FRAM_VARS             00004000   000005e0  0000044e  00000192  RWIX
+  FRAM_VARS             00004000   000005e0  00000446  0000019a  RWIX
   FRAM                  000045e0   0000b9a0  0000058a  0000b416  RWIX
   JTAGSIGNATURE         0000ff80   00000004  00000004  00000000  RWIX  ffff 
   BSLSIGNATURE          0000ff84   00000004  00000004  00000000  RWIX  ffff 
@@ -81,7 +81,7 @@ MEMORY CONFIGURATION
   INT53                 0000fffa   00000002  00000002  00000000  RWIX
   INT54                 0000fffc   00000002  00000002  00000000  RWIX
   RESET                 0000fffe   00000002  00000002  00000000  RWIX
-  FRAM2                 00010000   00033ff8  00000782  00033876  RWIX
+  FRAM2                 00010000   00033ff8  000007de  0003381a  RWIX
 
 
 SECTION ALLOCATION MAP
@@ -108,9 +108,9 @@ section   page    origin      length       input sections
 *          0    00004000    00000000     UNINITIALIZED
 
 .fram_vars 
-*          0    00004000    0000044e     
+*          0    00004000    00000446     
                   00004000    00000430     hibernation.obj (.fram_vars:uninit) [fill = 0]
-                  00004430    0000001e     hibernation.obj (.fram_vars:init)
+                  00004430    00000016     hibernation.obj (.fram_vars:init)
 
 .binit     0    000045e0    00000000     
 
@@ -274,34 +274,35 @@ SYSNMI     0    0000fffc    00000002
 .const     0    00004730    00000428     
                   00004730    00000428     hibernation.obj (.const:gen)
 
-.text      0    00010000    00000782     
-                  00010000    000002c2     hibernation.obj (.text:Restore_Register)
-                  000102c2    00000114     msp430fr599x_1.obj (.text:main)
-                  000103d6    000000fa     hibernation.obj (.text:Restore)
-                  000104d0    00000076     VCCmonitor.obj (.text:initVCCADC)
-                  00010546    00000072     hibernation.obj (.text:Hibernate)
-                  000105b8    00000066     hibernation.obj (.text:Save_RAM)
-                  0001061e    00000054     rts430x_lc_rd_eabi.lib : autoinit.c.obj (.text:__TI_auto_init_nobinit_nopinit_hold_wdt:__TI_auto_init_nobinit_nopinit_hold_wdt)
-                  00010672    0000003c     hibernation.obj (.text:GPIO_configuration)
-                  000106ae    0000003a     hibernation.obj (.text:Save_Register)
-                  000106e8    00000036     VCCmonitor.obj (.text:initADCTimer)
-                  0001071e    00000024     rts430x_lc_rd_eabi.lib : copy_zero_init.c.obj (.text:decompress:ZI:__TI_zero_init_nomemset:__TI_zero_init_nomemset)
-                  00010742    00000022     hibernation.obj (.text:Clock_configuration)
-                  00010764    00000012     hibernation.obj (.text:Hibernus)
-                  00010776    00000006     rts430x_lc_rd_eabi.lib : exit.c.obj (.text:abort)
-                  0001077c    00000004                            : pre_init.c.obj (.text:_system_pre_init)
-                  00010780    00000002                            : startup.c.obj (.text:_system_post_cinit)
+.text      0    00010000    000007de     
+                  00010000    000002c2     hibernation.obj (.text:RestoreGPRegisters)
+                  000102c2    000000fc     hibernation.obj (.text:Restore)
+                  000103be    000000dc     msp430fr599x_1.obj (.text:main)
+                  0001049a    00000082     hibernation.obj (.text:SaveRAMSnapshot)
+                  0001051c    0000007e     hibernation.obj (.text:Hibernate)
+                  0001059a    00000076     VCCmonitor.obj (.text:initVCCADC)
+                  00010610    0000005e     hibernation.obj (.text:updateBlockSelectRetention)
+                  0001066e    00000054     rts430x_lc_rd_eabi.lib : autoinit.c.obj (.text:__TI_auto_init_nobinit_nopinit_hold_wdt:__TI_auto_init_nobinit_nopinit_hold_wdt)
+                  000106c2    0000003c     hibernation.obj (.text:initGPIO)
+                  000106fe    0000003a     hibernation.obj (.text:SaveGPRegister)
+                  00010738    00000036     VCCmonitor.obj (.text:initADCTimer)
+                  0001076e    00000024     rts430x_lc_rd_eabi.lib : copy_zero_init.c.obj (.text:decompress:ZI:__TI_zero_init_nomemset:__TI_zero_init_nomemset)
+                  00010792    00000022     hibernation.obj (.text:initMSPClock)
+                  000107b4    0000001e     hibernation.obj (.text:systemInitialisation)
+                  000107d2    00000006     rts430x_lc_rd_eabi.lib : exit.c.obj (.text:abort)
+                  000107d8    00000004                            : pre_init.c.obj (.text:_system_pre_init)
+                  000107dc    00000002                            : startup.c.obj (.text:_system_post_cinit)
 
 MODULE SUMMARY
 
        Module                 code   ro data   rw data
        ------                 ----   -------   -------
     .\
-       hibernation.obj        1436   1066      1104   
+       hibernation.obj        1584   1066      1096   
        VCCmonitor.obj         378    2         0      
-       msp430fr599x_1.obj     276    0         0      
+       msp430fr599x_1.obj     220    0         0      
     +--+----------------------+------+---------+---------+
-       Total:                 2090   1068      1104   
+       Total:                 2182   1068      1096   
                                                       
     D:\ti\ccstheia140\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\rts430x_lc_rd_eabi.lib
        autoinit.c.obj         84     0         0      
@@ -352,7 +353,7 @@ MODULE SUMMARY
        Stack:                 0      0         160    
        Linker Generated:      0      18        0      
     +--+----------------------+------+---------+---------+
-       Grand Total:           2258   1158      1264   
+       Grand Total:           2350   1158      1256   
 
 
 LINKER GENERATED COPY TABLES
@@ -633,14 +634,13 @@ address   name
 000004bc  BIN2BCD                                
 000004bd  BIN2BCD_H                              
 000004bc  BIN2BCD_L                              
-00010776  C$$EXIT                                
+000107d2  C$$EXIT                                
 0000043e  CAPTIO0CTL                             
 0000043f  CAPTIO0CTL_H                           
 0000043e  CAPTIO0CTL_L                           
 0000047e  CAPTIO1CTL                             
 0000047f  CAPTIO1CTL_H                           
 0000047e  CAPTIO1CTL_L                           
-0000443c  CC_Check                               
 000008c0  CECTL0                                 
 000008c1  CECTL0_H                               
 000008c0  CECTL0_L                               
@@ -728,7 +728,6 @@ address   name
 0000016c  CSCTL6                                 
 0000016d  CSCTL6_H                               
 0000016c  CSCTL6_L                               
-00010742  Clock_configuration                    
 00000510  DMA0CTL                                
 00000511  DMA0CTL_H                              
 00000510  DMA0CTL_L                              
@@ -816,8 +815,7 @@ address   name
 0000050e  DMAIV                                  
 0000050f  DMAIV_H                                
 0000050e  DMAIV_L                                
-00004438  FLAG_interrupt                         
-00004440  FRAM_pc                                
+00004438  FRAM_pc                                
 00004430  FRAM_write_ptr                         
 00000140  FRCTL0                                 
 00000141  FRCTL0_H                               
@@ -828,9 +826,7 @@ address   name
 00000146  GCCTL1                                 
 00000147  GCCTL1_H                               
 00000146  GCCTL1_L                               
-00010672  GPIO_configuration                     
-00010546  Hibernate                              
-00010764  Hibernus                               
+0001051c  Hibernate                              
 00000a80  LEACAP                                 
 00000a82  LEACAPH                                
 00000a80  LEACAPL                                
@@ -1345,8 +1341,8 @@ address   name
 000004b6  RTCYEAR_L                              
 0000442c  Reg_copy_ptr                           
 00004004  Registers                              
-000103d6  Restore                                
-00010000  Restore_Register                       
+000102c2  Restore                                
+00010000  RestoreGPRegisters                     
 00000100  SFRIE1                                 
 00000101  SFRIE1_H                               
 00000100  SFRIE1_L                               
@@ -1386,8 +1382,8 @@ address   name
 0000019a  SYSUNIV                                
 0000019b  SYSUNIV_H                              
 0000019a  SYSUNIV_L                              
-000105b8  Save_RAM                               
-000106ae  Save_Register                          
+000106fe  SaveGPRegister                         
+0001049a  SaveRAMSnapshot                        
 00000352  TA0CCR0                                
 00000353  TA0CCR0_H                              
 00000352  TA0CCR0_L                              
@@ -1939,7 +1935,7 @@ address   name
 00004b5e  __TI_Handler_Table_Base                
 00004b62  __TI_Handler_Table_Limit               
 00004728  __TI_ISR_TRAP                          
-0001061e  __TI_auto_init_nobinit_nopinit_hold_wdt
+0001066e  __TI_auto_init_nobinit_nopinit_hold_wdt
 0000ffb4  __TI_int18                             
 0000ffb6  __TI_int19                             
 0000ffb8  __TI_int20                             
@@ -1980,29 +1976,33 @@ address   name
 ffffffff  __TI_pprof_out_hndl                    
 ffffffff  __TI_prof_data_size                    
 ffffffff  __TI_prof_data_start                   
-0001071e  __TI_zero_init_nomemset                
+0001076e  __TI_zero_init_nomemset                
 ffffffff  __c_args__                             
 0000470c  _c_int00_noargs                        
 0000fffe  _reset_vector                          
 00002b60  _stack                                 
-00010780  _system_post_cinit                     
-0001077c  _system_pre_init                       
-00010776  abort                                  
-00004448  additionalFlag                         
+000107dc  _system_post_cinit                     
+000107d8  _system_pre_init                       
+000107d2  abort                                  
+00004440  additionalFlag                         
 00004000  current_SP                             
 00004000  fram_ipe_end                           
 00004000  fram_ipe_start                         
 00004000  fram_rw_start                          
 00004000  fram_rx_start                          
 00004730  gen                                    
-00004446  hibernateDoneFlagSet                   
-0000444a  hibernateRecalled                      
-0000444c  hibernusInitial                        
+0000443e  hibernateDoneFlagSet                   
+00004442  hibernateRecalled                      
+00004444  hibernusInitial                        
 00001c00  i                                      
-000106e8  initADCTimer                           
-000104d0  initVCCADC                             
-000102c2  main                                   
-00004444  restoreDoneSetFlag                     
+00010738  initADCTimer                           
+000106c2  initGPIO                               
+00010792  initMSPClock                           
+0001059a  initVCCADC                             
+000103be  main                                   
+0000443c  restoreDoneSetFlag                     
+000107b4  systemInitialisation                   
+00010610  updateBlockSelectRetention             
 
 
 GLOBAL SYMBOLS: SORTED BY Symbol Address 
@@ -3564,14 +3564,12 @@ address   name
 0000442c  Reg_copy_ptr                           
 00004430  FRAM_write_ptr                         
 00004434  RAM_copy_ptr                           
-00004438  FLAG_interrupt                         
-0000443c  CC_Check                               
-00004440  FRAM_pc                                
-00004444  restoreDoneSetFlag                     
-00004446  hibernateDoneFlagSet                   
-00004448  additionalFlag                         
-0000444a  hibernateRecalled                      
-0000444c  hibernusInitial                        
+00004438  FRAM_pc                                
+0000443c  restoreDoneSetFlag                     
+0000443e  hibernateDoneFlagSet                   
+00004440  additionalFlag                         
+00004442  hibernateRecalled                      
+00004444  hibernusInitial                        
 000045e0  ADC12_ISR                              
 000046ae  Port_5                                 
 0000470c  _c_int00_noargs                        
@@ -3620,26 +3618,27 @@ address   name
 0000fffa  __TI_int53                             
 0000fffc  __TI_int54                             
 0000fffe  _reset_vector                          
-00010000  Restore_Register                       
-000102c2  main                                   
-000103d6  Restore                                
-000104d0  initVCCADC                             
-00010546  Hibernate                              
-000105b8  Save_RAM                               
-0001061e  __TI_auto_init_nobinit_nopinit_hold_wdt
-00010672  GPIO_configuration                     
-000106ae  Save_Register                          
-000106e8  initADCTimer                           
-0001071e  __TI_zero_init_nomemset                
-00010742  Clock_configuration                    
-00010764  Hibernus                               
-00010776  C$$EXIT                                
-00010776  abort                                  
-0001077c  _system_pre_init                       
-00010780  _system_post_cinit                     
+00010000  RestoreGPRegisters                     
+000102c2  Restore                                
+000103be  main                                   
+0001049a  SaveRAMSnapshot                        
+0001051c  Hibernate                              
+0001059a  initVCCADC                             
+00010610  updateBlockSelectRetention             
+0001066e  __TI_auto_init_nobinit_nopinit_hold_wdt
+000106c2  initGPIO                               
+000106fe  SaveGPRegister                         
+00010738  initADCTimer                           
+0001076e  __TI_zero_init_nomemset                
+00010792  initMSPClock                           
+000107b4  systemInitialisation                   
+000107d2  C$$EXIT                                
+000107d2  abort                                  
+000107d8  _system_pre_init                       
+000107dc  _system_post_cinit                     
 ffffffff  __TI_pprof_out_hndl                    
 ffffffff  __TI_prof_data_size                    
 ffffffff  __TI_prof_data_start                   
 ffffffff  __c_args__                             
 
-[1632 symbols]
+[1631 symbols]

@@ -25,12 +25,6 @@
 #define LED5 BIT3  //P7.3
 
 
-
-//Interrupt and Restoring
-#define INT 0xEDD8
-#define CHECK 0xEDDC
-
-
 //FRAM
 // #define FRAM_START_EXPLICIT 0x45E0
 // #define FRAM2_START 0x10000
@@ -49,22 +43,22 @@
 
 
 
-// Function Declarations for hibernation and restore
-void Hibernus(void);
 
-void Hibernate (void);
+void systemInitialisation(void);
+
+void Hibernate(void);
+void SaveRAMSnapshot (void);
+void SaveGPRegister (void);
+
 void Restore(void);
+void RestoreGPRegisters (void);
 
-void Save_RAM (void);
-void Save_Register (void);
-void Restore_Register (void);
 
-//function Declaration for configuration ofGPIO, CLock and COmparator
-void GPIO_configuration(void);
-void Clock_configuration(void);
 
-unsigned int get_stack_pointer(void);
+void initGPIO(void);
+void initMSPClock(void);
 
+//code for debugging hibernus
 void setupButtonInterruptP5();
 void setupButtonInterruptP6();
 
