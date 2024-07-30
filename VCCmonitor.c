@@ -65,15 +65,14 @@ void initVCCADC(void)
     ADC12IER2 |= ADC12LOIE | ADC12HIIE | ADC12INIE; // Enable high, in, low threshold interrupts
     __delay_cycles(400);
     
-
 }
 
 void initADCTimer(void) 
 {
     TA1CTL |= TACLR;         // Clear timer
-    TA1CCR0 = 328 - 1;       // Set the period for Timer A1
+    TA1CCR0 = 21 - 1;       // Set the period for Timer A1 which means isr called every 0.6ms
     TA1CCTL1 |= OUTMOD_7;    // Set/Reset mode
-    TA1CCR1 = 164;           // Set the duty cycle to 50%
+    TA1CCR1 = 10;           // Set the duty cycle to 50%
     TA1CTL |= TASSEL__ACLK;  // Use ACLK (32768Hz) = 100ms  period
     TA1CTL |= MC__UP;        // Up-mode
     __delay_cycles(400);
@@ -122,8 +121,6 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
             ADC12IER2 |= ADC12LOIE;  // Enable low interrupt
             ADC12IER2 |= ADC12INIE;  // Enable in window interrupt
             
-            
-
             #if DEBUG
               //serialPrint("High voltage threshold crossed, ");
               //DEBUGreadADC();
@@ -131,7 +128,7 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
 
             __delay_cycles(400);
             hibernusInitial = 1;
-            //lowVoltageDetected == 1;
+
             P1OUT ^= BIT1;  // Toggle P1.0
             if(hibernateDoneFlagSet == 1)
             {
@@ -154,6 +151,9 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
             ADC12IER2 &= ~ADC12LOIE; // Disable low interrupt
             ADC12IER2 |= ADC12HIIE;  // Enable high interrupt
             ADC12IER2 |= ADC12INIE;  // Enable in window interrupt
+
+            //added to measure downtime
+            //P3OUT |= LED1;  // Set P3.7 high
             
             P1OUT ^= BIT0;  // Toggle P1.0
             if((hibernateRecalled == 0) && (hibernusInitial == 1))
@@ -163,6 +163,9 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
             
             if((restoreDoneSetFlag == 0) || (hibernateRecalled == 1) || (hibernusInitial == 0))
             { 
+                //added to measure downtime
+                //P3OUT &= ~LED1;  // Set P3.7 low
+                
                 __bis_SR_register(LPM4_bits+GIE);   // Enter LPM4 with interrupts enabled
                 __no_operation();                   // For debug 
             }
@@ -172,9 +175,6 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
                 __no_operation();               // For debug 
             }
           
-
-
-
         //Handle low threshold cross
         break;
 

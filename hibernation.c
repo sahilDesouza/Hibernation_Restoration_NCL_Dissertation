@@ -38,7 +38,7 @@ int hibernusInitial = 0;
 #pragma SET_DATA_SECTION()
 
 
-const unsigned int gen[532] = {
+const unsigned int *gen[532] = {
                 0x00800, 0x00802, 0x00804, 0x00806, 0x00808, 0x0080A, 0x0080C, 0x0080E, 0x00810, 0x00812, 0x00814, 0x00816, 0x00818, 0x00820, 0x00822, 0x00824, 0x00826, 0x00828, 0x0082A, 0x0082C, 0x0082E, 0x00830, 0x00832, 0x00834, 0x00836, 0x00838, 0x0083A, 0x0083C, 0x0083E, 0x00840, 0x00842, 0x00844, 0x00846, 0x00848, 0x0084A, 0x0084C, 0x0084E, 0x00850, 0x00852, 0x00854, 0x00856, 0x00858, 0x0085A, 0x0085C, 0x0085E, 0x00860, 0x00862, 0x00864, 0x00866, 0x00868, 0x0086A, 0x0086C, 0x0086E, 0x00870, 0x00872, 0x00874, 0x00878, 0x0087A, 0x0087C, 0x0087E, 0x00880, 0x00882, 0x00884, 0x00886, 0x00888, 0x0088A, 0x0088C, 0x0088E, 0x00890, 0x00892, 0x00894, 0x00896, 0x00898, 0x0089A, 0x0089C, 0x0089E,
                 0x009C0, 0x009C2, 0x009C4, 0x009C6, 0x009C8, 0x009CA, 0x009CC, 0x009CE,
                 0x0043E,
@@ -157,11 +157,10 @@ void initMSPClock(void)
 
 void Hibernate(void)
 {
-    //Added for Debugging
-    P3OUT &= ~LED1;  // Set P3.7 low
-    P3OUT ^= LED1;  // Set P3.7 high
+    //Added for Debugging and measuring hibernus speed
+    // P3OUT &= ~LED1;  // Set P3.7 low
+    // P3OUT ^= LED1;  // Set P3.7 high
 
-    
     //copy Core registers to FRAM
     asm(" MOVA R1,&0xEDF4");
     asm(" MOVA R2,&0xEDF8");
@@ -178,25 +177,29 @@ void Hibernate(void)
     asm(" MOVA R13,&0xEE24");
     asm(" MOVA R14,&0xEE28");
     asm(" MOVA R15,&0xEE2C");
-      
+    //uptohere downtime executes
+    
     //PC
     current_SP = (unsigned long int *)__get_SP_register();
     *FRAM_pc = *current_SP;
 
-    // copy all the RAM onto the FRAM
+    //added for downtime debugging
+    //P3OUT |= LED1;  // Set P3.7 high 
+    
+    // copy all the RAM Segmetns onto the FRAM
     SaveRAMSnapshot();
+    
+    //save all GP registers to FRAM
+    SaveGPRegister();
 
     // copy all the general registers onto the FRAM
     restoreDoneSetFlag = 0;
     additionalFlag = 0;
 
     hibernateRecalled = 1;
-
-    SaveGPRegister();
-
     hibernateDoneFlagSet = 1;
-
-    // Added For Debugging
+    
+    //Added for Debugging and measuring hibernus speed
     //P3OUT ^= LED1;  // Set P3.7 low
 }
 
@@ -251,9 +254,9 @@ void Restore(void)
     hibernateRecalled = 0;
 
     
-    //For Debugging: System active
-    P2DIR |= BIT6;
-    P2OUT |= BIT6;
+    // //For Debugging: System active
+    // P2DIR |= BIT6;
+    // P2OUT |= BIT6;
     //restore done reset hibernate flag
     hibernateDoneFlagSet = 0xA0;
 
@@ -267,7 +270,7 @@ void Restore(void)
 
 
     //added for debugging
-    P3OUT ^= LED1;  // Set P3.7 low
+    //P3OUT ^= LED1;  // Set P3.7 low
 
 
     __bis_SR_register(GIE);        //interrupts enabled
@@ -281,9 +284,23 @@ void SaveRAMSnapshot(void)
 
     FRAM_write_ptr = (unsigned long int *) FRAM_START_EXPLICIT;
         
-    for ( i = 0; i < 16; i++)
+    // for ( i = 0; i < 16; i++)
+    // {
+    //     *FRAM_write_ptr++;
+    // }
+    FRAM_write_ptr += 16;
+
+    //copy all RAM onto the FRAM
+    RAM_copy_ptr = (unsigned long int *) RAM_START;
+
+    while(RAM_copy_ptr <= (unsigned long int *) (RAM_END)) 
     {
-        *FRAM_write_ptr++;
+        if(*FRAM_write_ptr != *RAM_copy_ptr)
+        {
+            *FRAM_write_ptr++ = *RAM_copy_ptr++; 
+        }
+        FRAM_write_ptr++;
+        RAM_copy_ptr++;
     }
 
     // RAM_copy_ptr = (unsigned long int *) RAM_START;
@@ -292,31 +309,22 @@ void SaveRAMSnapshot(void)
     //     *FRAM_write_ptr++ = *RAM_copy_ptr++;
     // }
     
-    // copy all RAM onto the FRAM
-    RAM_copy_ptr = (unsigned long int *) RAM_START;
-
-    while(RAM_copy_ptr <= (unsigned long int *) (RAM_END)) 
-    {
-        if(*FRAM_write_ptr == *RAM_copy_ptr)
-        {
-            FRAM_write_ptr++;
-            RAM_copy_ptr++;
-        }
-        else
-        {
-            *FRAM_write_ptr++ = *RAM_copy_ptr++;
-        }
-    }
-
 }
 
 void SaveGPRegister(void)
 {
-    
+    // // save GP registers data into registers array in fram.vars
+    // for(i = 0; i < 532; i++)
+    // {
+    //     Reg_copy_ptr = (unsigned  int *)gen[i];
+    //     Registers[i] = *Reg_copy_ptr;
+    // }
+
+    //selectively save data into registers array since initial value already created during INIT
     for(i = 0; i < 532; i++)
     {
-        Reg_copy_ptr = (unsigned  int *)gen[i];
-        Registers[i] = *Reg_copy_ptr;
+        if(Registers[i] != *gen[i])
+            Registers[i] = *gen[i];     
     }
 }
 
@@ -410,6 +418,7 @@ void RestoreGPRegisters(void)
 
 void updateBlockSelectRetention()
 {
+    //update FRAM with RAM snapshot
     FRAM_write_ptr = (unsigned long int *) FRAM_START_EXPLICIT;
 
     for ( i = 0; i < 16; i++)
@@ -420,6 +429,13 @@ void updateBlockSelectRetention()
     while(RAM_copy_ptr <= (unsigned long int *) (RAM_END)) 
     {
         *FRAM_write_ptr++ = *RAM_copy_ptr++;
+    }
+
+    //update initial GP registers in FRAM.vars
+    for(i = 0; i < 532; i++)
+    {
+        Reg_copy_ptr = (unsigned  int *)gen[i];
+        Registers[i] = *Reg_copy_ptr;
     }
 }
 

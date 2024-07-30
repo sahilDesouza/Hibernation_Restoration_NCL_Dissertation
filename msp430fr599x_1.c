@@ -34,15 +34,15 @@ int main(void)
     P1OUT &= ~BIT1;     // Initialize the LED to be off
     //__delay_cycles(10000);
 
-    
+   
     //APPLICATION CODE
     while(1)
     {
-        // // Blink LED on P3.7
-        // P3OUT |= LED1;  // Set P3.7 high
-        // __delay_cycles(10000000);
-        // P3OUT &= ~LED1;  // Set P3.7 low
-        // __delay_cycles(10000000);
+        // Blink LED on P3.7
+        P3OUT |= LED1;  // Set P3.7 high
+        __delay_cycles(10000000);
+        P3OUT &= ~LED1;  // Set P3.7 low
+        __delay_cycles(10000000);
         
         // Blink LED on P3.6
         P3OUT |= LED2;  // Set P3.6 high
