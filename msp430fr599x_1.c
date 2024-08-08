@@ -11,7 +11,7 @@
 #include <msp430.h>
 #include "SerialPrint.h"
 
-
+int inWindow = 0;
 int main(void) 
 {
 	//For Debugging: System active
@@ -27,40 +27,38 @@ int main(void)
 
     P3DIR |= (LED1 | LED2 | LED3 | LED4 );
 
-    P1DIR |= BIT0;      // Set P1.0 as output (BIT0 corresponds to P1.0)
-    P1OUT &= ~BIT0;     // Initialize the LED to be off
 
-    P1DIR |= BIT1;      // Set P1.0 as output (BIT0 corresponds to P1.0)
-    P1OUT &= ~BIT1;     // Initialize the LED to be off
-    //__delay_cycles(10000);
 
    
     //APPLICATION CODE
     while(1)
     {
-        // Blink LED on P3.7
-        P3OUT |= LED1;  // Set P3.7 high
-        __delay_cycles(10000000);
-        P3OUT &= ~LED1;  // Set P3.7 low
-        __delay_cycles(10000000);
-        
-        // Blink LED on P3.6
-        P3OUT |= LED2;  // Set P3.6 high
-        __delay_cycles(10000000);
-        P3OUT &= ~LED2;  // Set P3.6 low
-       __delay_cycles(10000000);
+        if(inWindow == 1)
+        {
+            // Blink LED on P3.7
+            P3OUT |= LED1;  // Set P3.7 high
+            __delay_cycles(10000000);
+            P3OUT &= ~LED1;  // Set P3.7 low
+            __delay_cycles(10000000);
+            
+            // Blink LED on P3.6
+            P3OUT |= LED2;  // Set P3.6 high
+            __delay_cycles(10000000);
+            P3OUT &= ~LED2;  // Set P3.6 low
+            __delay_cycles(10000000);
 
-        // Blink LED on P3.5
-        P3OUT |= LED3;  // Set P3.5 high
-        __delay_cycles(10000000);
-        P3OUT &= ~LED3;  // Set P3.5 low
-       __delay_cycles(10000000);
-        
-        // Blink LED on P3.4
-        P3OUT |= LED4;  // Set P3.4 high
-        __delay_cycles(10000000);
-        P3OUT &= ~LED4;  // Set P3.4 low
-        __delay_cycles(10000000);
+            // Blink LED on P3.5
+            P3OUT |= LED3;  // Set P3.5 high
+            __delay_cycles(10000000);
+            P3OUT &= ~LED3;  // Set P3.5 low
+            __delay_cycles(10000000);
+            
+            // Blink LED on P3.4
+            P3OUT |= LED4;  // Set P3.4 high
+            __delay_cycles(10000000);
+            P3OUT &= ~LED4;  // Set P3.4 low
+            __delay_cycles(10000000);
+        }
     }
 }
 

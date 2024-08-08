@@ -99,27 +99,28 @@ void systemInitialisation(void)
     //create initial snapshot in fram when system just boots up
     if(hibernateDoneFlagSet == 0xA0)
         updateBlockSelectRetention();
-
+        
     initVCCADC();
     initADCTimer();
-  
 
+    //code below commented out but can be used for debugging hibernus
     //serialPrintInit();
-
     // setupButtonInterruptP5();
     // setupButtonInterruptP6();
+    
+    //prevent application from running untill isr called
+    //__delay_cycles(17500);
 
-    // if(hibernateDoneFlagSet == 1)
-    // {
-    //     hibernateDoneFlagSet = 0xA0;
-    //     Restore(); 
-    // }
 
-    // if(lowPowerMode == 1)
+    // //hibernation done but restore not yet called hence remain in LPM
+    // //and prevent application from running
+    // if((hibernateDoneFlagSet == 1) || (hibernusInitial == 1) )
     // { 
     //     __bis_SR_register(LPM4_bits+GIE);   // Enter LPM4 with interrupts enabled
     //     __no_operation();                   // For debug 
+        
     // }
+
 }
 
 void initGPIO(void)
@@ -138,6 +139,12 @@ void initGPIO(void)
     P3DIR |= 0xFB;
     P4DIR |= 0xFF;
     PJDIR |= 0xFF;  // Direction = output
+
+    P1DIR |= BIT0;      // Set P1.0 as output (BIT0 corresponds to P1.0)
+    P1OUT &= ~BIT0;     // Initialize the LED to be off
+
+    P1DIR |= BIT1;      // Set P1.0 as output (BIT0 corresponds to P1.0)
+    P1OUT &= ~BIT1;     // Initialize the LED to be off
 
 }
 
@@ -177,7 +184,6 @@ void Hibernate(void)
     asm(" MOVA R13,&0xEE24");
     asm(" MOVA R14,&0xEE28");
     asm(" MOVA R15,&0xEE2C");
-    //uptohere downtime executes
     
     //PC
     current_SP = (unsigned long int *)__get_SP_register();
@@ -199,8 +205,8 @@ void Hibernate(void)
     hibernateRecalled = 1;
     hibernateDoneFlagSet = 1;
     
-    //Added for Debugging and measuring hibernus speed
-    //P3OUT ^= LED1;  // Set P3.7 low
+    // //Added for Debugging and measuring hibernus speed
+    // P3OUT ^= LED1;  // Set P3.7 low
 }
 
 void Restore(void)
@@ -270,7 +276,7 @@ void Restore(void)
 
 
     //added for debugging
-    //P3OUT ^= LED1;  // Set P3.7 low
+    // P3OUT ^= LED1;  // Set P3.7 low
 
 
     __bis_SR_register(GIE);        //interrupts enabled
@@ -299,8 +305,12 @@ void SaveRAMSnapshot(void)
         {
             *FRAM_write_ptr++ = *RAM_copy_ptr++; 
         }
-        FRAM_write_ptr++;
-        RAM_copy_ptr++;
+        else 
+        {
+            FRAM_write_ptr++;
+            RAM_copy_ptr++;
+        }
+     
     }
 
     // RAM_copy_ptr = (unsigned long int *) RAM_START;
@@ -440,6 +450,7 @@ void updateBlockSelectRetention()
 }
 
 
+//Below 2 functions and ISR added for hibernus debugging
 void setupButtonInterruptP5() 
 {
     // Configure P5.5 as input with pull-up resistor

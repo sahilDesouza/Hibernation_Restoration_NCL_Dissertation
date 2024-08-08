@@ -22,14 +22,18 @@
 #include "intrinsics.h"
 #include "msp430fr5994.h"
 
-#define LOW_VCC 3583  // 2.1V
-#define HIGH_VCC 3924 // 2.3V
+//Vref 1.2V
+// #define LOW_VCC 3583  // 2.1V
+// #define HIGH_VCC 3924 // 2.3V
 
-// #define LOW_VCC 2354  // 2.1V
-// #define HIGH_VCC 2867 // 2.3V
 
-// #define LOW_VCC 2354  // <2.3V
-// #define HIGH_VCC 3071 // >3V
+//Vref 2V (Used for results)
+#define LOW_VCC 2559  // 2.5V
+#define HIGH_VCC 3071 // 3.2V
+
+//Vref 2V
+// #define LOW_VCC 2150  // 2.1V
+// #define HIGH_VCC 3071 // 3.2V
 
 #define DEBUG 0
 
@@ -42,26 +46,27 @@ extern int hibernateDoneFlagSet;
 extern int additionalFlag;
 extern int hibernateRecalled;
 extern int hibernusInitial;
+extern int inWindow;
 
 void initVCCADC(void) 
 {
-    ADC12CTL0 &= ~ADC12ENC;        // Disable conversion
-    ADC12CTL0 |= ADC12SHT0_3;      // 32 cycle sampling time
-    ADC12CTL0 |= ADC12ON;          // Turn ADC12_B on
-    ADC12CTL1 |= ADC12SHP;         // Use sampling timer
-    ADC12CTL1 |= ADC12SHS_4;       // Trigger on TA1 CCR1 output
-    ADC12CTL1 |= ADC12CONSEQ_2;    // Repeat-single-channel mode
-    ADC12CTL2 |= ADC12RES_2;       // 12-bit conversion
-    ADC12MCTL0 |= ADC12VRSEL_1;    // VR+ = VREF buffered, VR- = AVSS
-    ADC12MCTL0 |= ADC12WINC;       // Window comparator enable
-    ADC12CTL3 |= ADC12BATMAP_1;    // Set A31 to AVCC / 2
-    ADC12MCTL0 |= ADC12INCH_31;    // Input channel A31 for internal AVCC/2 reference
-    while (REFCTL0 & REFGENBUSY);  // Wait if the reference generator is busy
-    REFCTL0 |= REFVSEL_0 | REFON;  // Enable 1.2V reference (Requires AVCC to be at least 1.8V)
-    while(!(REFCTL0 & REFGENRDY)); // Wait for reference to settle
-    ADC12CTL0 |= ADC12ENC;         // Enable conversion
-    ADC12HI = HIGH_VCC;                 // Set HIGH window comparator threshold
-    ADC12LO = LOW_VCC;                  // Set LOW window comparator threshold
+    ADC12CTL0 &= ~ADC12ENC;                         // Disable conversion
+    ADC12CTL0 |= ADC12SHT0_3;                       // 32 cycle sampling time
+    ADC12CTL0 |= ADC12ON;                           // Turn ADC12_B on
+    ADC12CTL1 |= ADC12SHP;                          // Use sampling timer
+    ADC12CTL1 |= ADC12SHS_4;                        // Trigger on TA1 CCR1 output
+    ADC12CTL1 |= ADC12CONSEQ_2;                     // Repeat-single-channel mode
+    ADC12CTL2 |= ADC12RES_2;                        // 12-bit conversion
+    ADC12MCTL0 |= ADC12VRSEL_1;                     // VR+ = VREF buffered, VR- = AVSS
+    ADC12MCTL0 |= ADC12WINC;                        // Window comparator enable
+    ADC12CTL3 |= ADC12BATMAP_1;                     // Set A31 to AVCC / 2
+    ADC12MCTL0 |= ADC12INCH_31;                     // Input channel A31 for internal AVCC/2 reference
+    while (REFCTL0 & REFGENBUSY);                   // Wait if the reference generator is busy
+    REFCTL0 |= REFVSEL_1 | REFON;                   // Enable 2V reference (Requires AVCC to be at least 1.8V)
+    while(!(REFCTL0 & REFGENRDY));                  // Wait for reference to settle
+    ADC12CTL0 |= ADC12ENC;                          // Enable conversion
+    ADC12HI = HIGH_VCC;                             // Set HIGH window comparator threshold
+    ADC12LO = LOW_VCC;                              // Set LOW window comparator threshold
     ADC12IER2 |= ADC12LOIE | ADC12HIIE | ADC12INIE; // Enable high, in, low threshold interrupts
     __delay_cycles(400);
     
@@ -69,14 +74,14 @@ void initVCCADC(void)
 
 void initADCTimer(void) 
 {
-    TA1CTL |= TACLR;         // Clear timer
-    TA1CCR0 = 21 - 1;       // Set the period for Timer A1 which means isr called every 0.6ms
-    TA1CCTL1 |= OUTMOD_7;    // Set/Reset mode
-    TA1CCR1 = 10;           // Set the duty cycle to 50%
-    TA1CTL |= TASSEL__ACLK;  // Use ACLK (32768Hz) = 100ms  period
-    TA1CTL |= MC__UP;        // Up-mode
-    __delay_cycles(400);
-    __bis_SR_register(GIE);             // Enable global interrupts
+    TA1CTL |= TACLR;            // Clear timer
+    TA1CCR0 = 21 - 1;           // Set the period for Timer A1 which means isr called every 0.6ms
+    TA1CCTL1 |= OUTMOD_7;       // Set/Reset mode
+    TA1CCR1 = 10;               // Set the duty cycle to 50%
+    TA1CTL |= TASSEL__ACLK;     // Use ACLK (32768Hz) = 100ms  period
+    TA1CTL |= MC__UP;           // Up-mode
+    __delay_cycles(400);        //delay to allow reference to settle
+    __bis_SR_register(GIE);     // Enable global interrupts
 }
 
 
@@ -87,7 +92,7 @@ void DEBUGreadADC (void)
     while (ADC12CTL1 & ADC12BUSY);      // Wait for conversion to complete
     uint16_t digitalVolts = ADC12MEM0;  // Read result from the memory buffer
 
-    float analogVolts = (2.0 * (float) digitalVolts * (1.2 / 4095.0)); // Convert digital ADC reading to analog volts
+    float analogVolts = (2.0 * (float) digitalVolts * (2 / 4095.0)); // Convert digital ADC reading to analog volts
 
     serialPrint("VCC = %fV, ", analogVolts); // Print analog VCC in volts
     serialPrint("ADC: %d \n\r", digitalVolts); // Print digital ADC reading
@@ -122,11 +127,13 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
             ADC12IER2 |= ADC12INIE;  // Enable in window interrupt
             
             #if DEBUG
-              //serialPrint("High voltage threshold crossed, ");
-              //DEBUGreadADC();
+              serialPrint("High voltage threshold crossed, ");
+              DEBUGreadADC();
             #endif
-
+            inWindow = 1;
             __delay_cycles(400);
+                        
+            //set initial flag to 1 (But init to 0) and prevent hibernus from being run if initial voltage is hibernation voltage
             hibernusInitial = 1;
 
             P1OUT ^= BIT1;  // Toggle P1.0
@@ -144,8 +151,8 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
             ADC12IFGR2 &= ~ADC12INIFG;      // Clear in interrupt flag
             
             #if DEBUG
-              //serialPrint("Low voltage threshold crossed, ");
-             // DEBUGreadADC();
+                serialPrint("Low voltage threshold crossed, ");
+                DEBUGreadADC();
             #endif
 
             ADC12IER2 &= ~ADC12LOIE; // Disable low interrupt
@@ -154,8 +161,10 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
 
             //added to measure downtime
             //P3OUT |= LED1;  // Set P3.7 high
-            
+            inWindow = 1;
             P1OUT ^= BIT0;  // Toggle P1.0
+
+            //checks added below to ensure hibernation is called appropriately
             if((hibernateRecalled == 0) && (hibernusInitial == 1))
             {
                 Hibernate(); 
@@ -188,10 +197,11 @@ void __attribute__ ((interrupt(ADC12_B_VECTOR))) ADC12_ISR (void)
 
 
             #if DEBUG
-              //serialPrint("Within window, ");
-              //DEBUGreadADC();
+                serialPrint("Within window, ");
+                DEBUGreadADC();
             #endif
-
+            inWindow = 0;
+            __delay_cycles(17500);
             break;
         case ADC12IV__ADC12IFG0:   break;   // Vector 12:  ADC12MEM0
         case ADC12IV__ADC12IFG1:   break;   // Vector 14:  ADC12MEM1
