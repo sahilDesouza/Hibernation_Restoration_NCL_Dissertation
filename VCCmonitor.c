@@ -22,16 +22,16 @@
 #include "intrinsics.h"
 #include "msp430fr5994.h"
 
-//Vref 1.2V
-// #define LOW_VCC 3583  // 2.1V
-// #define HIGH_VCC 3924 // 2.3V
+//Vref 1.2V used for DC tests
+#define LOW_VCC 3583  // 2.1V
+#define HIGH_VCC 3924 // 2.3V
 
 
-//Vref 2V (Used for results)
-#define LOW_VCC 2559  // 2.5V
-#define HIGH_VCC 3071 // 3.2V
+//Reference Voltage Set to 2V (Used for results)
+// #define LOW_VCC 2559  // 2.5V
+// #define HIGH_VCC 3071 // 3.2V
 
-//Vref 2V
+//Reference Voltage Set to 2V
 // #define LOW_VCC 2150  // 2.1V
 // #define HIGH_VCC 3071 // 3.2V
 
@@ -62,7 +62,7 @@ void initVCCADC(void)
     ADC12CTL3 |= ADC12BATMAP_1;                     // Set A31 to AVCC / 2
     ADC12MCTL0 |= ADC12INCH_31;                     // Input channel A31 for internal AVCC/2 reference
     while (REFCTL0 & REFGENBUSY);                   // Wait if the reference generator is busy
-    REFCTL0 |= REFVSEL_1 | REFON;                   // Enable 2V reference (Requires AVCC to be at least 1.8V)
+    REFCTL0 |= REFVSEL_0 | REFON;                   // Enable 2V reference (Requires AVCC to be at least 1.8V)
     while(!(REFCTL0 & REFGENRDY));                  // Wait for reference to settle
     ADC12CTL0 |= ADC12ENC;                          // Enable conversion
     ADC12HI = HIGH_VCC;                             // Set HIGH window comparator threshold

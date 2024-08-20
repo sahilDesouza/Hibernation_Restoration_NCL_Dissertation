@@ -22,7 +22,7 @@
 #define LED2 BIT6  // P3.6
 #define LED3 BIT5  // P3.5
 #define LED4 BIT4  // P3.4
-#define LED5 BIT3  //P7.3
+#define LED5 BIT3  // P7.3
 
 
 //FRAM

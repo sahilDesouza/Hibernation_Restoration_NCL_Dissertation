@@ -108,19 +108,6 @@ void systemInitialisation(void)
     // setupButtonInterruptP5();
     // setupButtonInterruptP6();
     
-    //prevent application from running untill isr called
-    //__delay_cycles(17500);
-
-
-    // //hibernation done but restore not yet called hence remain in LPM
-    // //and prevent application from running
-    // if((hibernateDoneFlagSet == 1) || (hibernusInitial == 1) )
-    // { 
-    //     __bis_SR_register(LPM4_bits+GIE);   // Enter LPM4 with interrupts enabled
-    //     __no_operation();                   // For debug 
-        
-    // }
-
 }
 
 void initGPIO(void)

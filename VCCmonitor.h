@@ -28,8 +28,6 @@ void initADCTimer(void);
 // Initialises ADC12_B for VCC measurement
 void initVCCADC (void);
 
-void restoreFunctionSet(void);
-
 #if DEBUG
   //Prints analog and digital voltage values for debugging
   void DEBUGreadADC (void);
